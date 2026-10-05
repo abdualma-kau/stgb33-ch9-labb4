@@ -1,0 +1,70 @@
+Modell A — training: lny ~ x1 + x2 + x3
+=======================================
+Residuals:
+     Min       1Q   Median       3Q      Max
+ -0.4699  -0.1795  -0.0307   0.1788   0.5925
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)
+(Intercept)    3.76618    0.22676  16.609    < 2e-16 ***
+x1             0.09546    0.02169   4.401   0.000057 ***
+x2             0.01334    0.00203   6.556   0.000000 ***
+x3             0.01645    0.00163  10.094   0.000000 ***
+
+Residual standard error: 0.2493 on 50 degrees of freedom
+Multiple R-squared: 0.7573, Adjusted R-squared: 0.7427
+F-statistic: 52.003 on 3 and 50 DF, p-value: 2.12446e-15
+
+Modell A — validation: lny ~ x1 + x2 + x3
+=========================================
+Residuals:
+     Min       1Q   Median       3Q      Max
+ -0.6612  -0.1468   0.0025   0.1256   0.5772
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)
+(Intercept)    3.70205    0.29497  12.550    < 2e-16 ***
+x1             0.09830    0.03277   3.000   0.004203 **
+x2             0.01655    0.00238   6.951   0.000000 ***
+x3             0.01480    0.00203   7.284   0.000000 ***
+
+Residual standard error: 0.2858 on 50 degrees of freedom
+Multiple R-squared: 0.6841, Adjusted R-squared: 0.6651
+F-statistic: 36.093 on 3 and 50 DF, p-value: 1.47208e-12
+
+Modell B — training: lny ~ x1 + x2 + x3 + x4
+============================================
+Residuals:
+     Min       1Q   Median       3Q      Max
+ -0.4350  -0.1759  -0.0209   0.1840   0.5619
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)
+(Intercept)    3.85195    0.26626  14.467    < 2e-16 ***
+x1             0.08368    0.02883   2.902   0.005536 **
+x2             0.01266    0.00231   5.471   0.000002 ***
+x3             0.01563    0.00210   7.443   0.000000 ***
+x4             0.03216    0.05147   0.625   0.534932 
+
+Residual standard error: 0.2509 on 49 degrees of freedom
+Multiple R-squared: 0.7592, Adjusted R-squared: 0.7396
+F-statistic: 38.624 on 4 and 49 DF, p-value: 1.38796e-14
+
+Modell B — validation: lny ~ x1 + x2 + x3 + x4
+==============================================
+Residuals:
+     Min       1Q   Median       3Q      Max
+ -0.6786  -0.1284   0.0063   0.1178   0.5916
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)
+(Intercept)    3.80141    0.31470  12.079   0.000000 ***
+x1             0.08556    0.03564   2.401   0.020202 *
+x2             0.01545    0.00267   5.782   0.000001 ***
+x3             0.01339    0.00255   5.251   0.000003 ***
+x4             0.05422    0.05915   0.917   0.363765 
+
+Residual standard error: 0.2862 on 49 degrees of freedom
+Multiple R-squared: 0.6894, Adjusted R-squared: 0.6641
+F-statistic: 27.193 on 4 and 49 DF, p-value: 6.46579e-12
+

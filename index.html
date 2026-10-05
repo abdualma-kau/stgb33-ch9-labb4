@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Stegvis R-labb i Kutners kapitel 9 om modellform, modellval och validering med Surgical Unit-data.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%23092235%27/%3E%3Cpath d=%27M18 17h28v7H28v8h15v7H28v8h18v7H18z%27 fill=%27%2313b8a6%27/%3E%3Ccircle cx=%2748%27 cy=%2716%27 r=%275%27 fill=%27%23ffd166%27/%3E%3C/svg%3E">
+<title>Kapitel 9 | Building the Regression Model I: Model Selection and Validation</title>
+<style>
+:root{--ink:#092235;--teal:#13b8a6;--teal2:#0a8e82;--paper:#f7f4ed;--card:#fff;--muted:#587383;--line:#d8e4e4;--warm:#fff4e3;--code:#0b273a;--soft:#eaf5f3;--ok:#eaf7ed;--blue:#edf4fb;--yellow:#ffd166;--danger:#b64a5b}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.58 Aptos,Arial,sans-serif}header{background:var(--ink);color:#fff;padding:18px max(24px,calc((100vw - 1120px)/2));display:flex;justify-content:space-between;gap:16px;font-weight:800}main,footer{max-width:1120px;margin:auto;padding-left:24px;padding-right:24px}main{padding-top:44px;padding-bottom:76px}.eyebrow,.label{color:var(--teal2);font-weight:800;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}h1{font-size:clamp(2.35rem,5vw,4.8rem);letter-spacing:-.045em;line-height:1.02;margin:8px 0 18px;max-width:930px}h2{font-size:clamp(1.55rem,3vw,2.2rem);line-height:1.12;margin:0 0 10px}h3{margin:24px 0 8px}.lead,.purpose{color:var(--muted);font-size:1.08rem;max-width:930px}.question{margin:30px 0;padding:24px 28px;background:var(--ink);color:#fff;border-radius:16px;font-weight:700;font-size:1.1rem}.question .label{display:block;color:#8be9dc;margin-bottom:8px}.button{display:inline-block;background:var(--teal);border:0;border-radius:999px;padding:11px 17px;color:var(--ink);font:700 15px Aptos,Arial,sans-serif;text-decoration:none;cursor:pointer}.button.alt{background:#fff;border:1px solid var(--line)}.button:focus-visible,.nav a:focus-visible,summary:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}.actions,.buttons{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.grid3,.grid2,.metrics,.flow{display:grid;gap:14px}.grid3{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:repeat(2,1fr)}.metrics{grid-template-columns:repeat(4,1fr)}.flow{grid-template-columns:repeat(2,1fr)}.card,.interpret,.metric,.flow>div{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:19px}.card p,.flow small{display:block;color:var(--muted);margin:4px 0 0}.metric strong{font-size:1.35rem;display:block}.metric b{color:var(--teal2);font-size:.8rem;text-transform:uppercase}.nav{display:flex;overflow:auto;gap:4px;margin:36px 0;border-bottom:1px solid var(--line);padding:10px 0 18px;position:sticky;top:0;background:var(--paper);z-index:3}.nav a{white-space:nowrap;text-decoration:none;color:var(--muted);font-weight:700;padding:6px 9px}.nav a:hover{color:var(--teal2)}.lab{padding:44px 0;border-bottom:1px solid var(--line);scroll-margin-top:70px}.phase{display:inline-flex;align-items:center;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:.82rem;font-weight:800;margin-bottom:12px}.phase span{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:50%;background:var(--teal);color:var(--ink)}.code,.output{border-radius:14px;padding:20px;overflow:auto;white-space:pre;font:14px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}.code{background:var(--code);color:#d9fbf6;margin:18px 0}.output{background:#071b29;color:#d5ebe8;margin:15px 0}.reveal{display:none;margin-top:15px}.reveal.open{display:block}.interpret{border-left:5px solid var(--teal);margin-top:14px}.interpret p:last-child{margin-bottom:0}.formula{margin:18px 0;padding:20px;background:var(--soft);border-radius:14px;font:1.18rem Georgia,serif;text-align:center;overflow:auto}.note{background:var(--warm);border:1px solid #f2d7a5;border-radius:14px;padding:16px;margin-top:16px}.note b{color:#97530b}.ok{background:var(--ok);border:1px solid #cfe7d4;border-radius:14px;padding:16px;margin-top:16px}.blue{background:var(--blue);border:1px solid #ccdeef;border-radius:14px;padding:16px;margin-top:16px}.warning{background:#fff0f1;border:1px solid #edc6cd;border-radius:14px;padding:16px;margin-top:16px}.warning b{color:var(--danger)}figure{margin:18px 0;background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px}figure img{width:100%;height:auto;display:block;border-radius:8px;background:#fff}figcaption{padding:10px 3px 0;color:var(--muted);font-size:.9rem}.table-wrap{overflow:auto;margin:14px 0;border-radius:14px;border:1px solid var(--line)}table{width:100%;border-collapse:collapse;background:#fff;min-width:680px}th,td{text-align:left;padding:10px 11px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--teal2);font-size:.78rem;text-transform:uppercase}td{color:var(--muted)}tbody tr:last-child td{border-bottom:0}.selected td{background:#eef9f6;color:var(--ink);font-weight:700}details{margin-top:22px;padding:17px 20px;background:var(--soft);border-radius:14px}summary{font-weight:800;cursor:pointer}footer{color:var(--muted);padding-bottom:45px;font-size:.9rem}.small{font-size:.92rem;color:var(--muted)}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}.kbox{background:#fff;border:1px solid var(--line);border-left:5px solid var(--teal2);border-radius:14px;padding:15px;margin:14px 0}.kbox strong{color:var(--teal2)}.model{border-top:3px solid var(--teal);padding-top:14px}.model strong{display:block;font-size:1.12rem}.model code{display:block;color:var(--teal2);font-size:1rem;margin:5px 0}.compare-title{margin-top:30px;padding-bottom:6px;border-bottom:2px solid var(--line)}@media(max-width:760px){header{align-items:flex-start;flex-direction:column}.grid3,.grid2,.metrics,.flow{grid-template-columns:1fr}.code,.output{font-size:12px}.nav{position:static}h1{font-size:2.6rem}.lab{padding:36px 0}}
+</style>
+</head>
+<body>
+<header><div>STGB33/Labb4</div><span>Kapitel 9 · Modellval och validering</span></header>
+<main>
+<div class="eyebrow">Kutner kapitel 9 · §§9.1–9.6</div>
+<h1>Building the Regression Model I:<br>Model Selection and Validation</h1>
+<p class="lead">En styrd analys av <strong>Surgical Unit</strong> med fyra prediktorer. Vi börjar på den ursprungliga Y-skalan, granskar diagnosgraferna och motiverar först därefter transformationen till ln(Y). Sedan genomförs all subsets, forward och backward selection samt oberoende validering.</p>
+<div class="question"><div class="label">Labbens huvudfråga</div>Hur går vi från en olämplig modellform till en enkel modell som också fungerar på nya patienter?</div>
+<div class="actions">
+  <a class="button" href="surgical_unit_training.csv" download>Träningsdata (.csv)</a>
+  <a class="button" href="surgical_unit_validation.csv" download>Valideringsdata (.csv)</a>
+  <a class="button alt" href="labb4_chapter9.R" download>Komplett R-script</a>
+  <button id="teacher" class="button alt" type="button">Lärarläge: visa all output</button>
+</div>
+<h2>Efter labben kan du...</h2>
+<div class="grid3">
+  <div class="card"><div class="label">Modellform</div><b>Diagnostisera Y före transformation.</b><p>Jämför residualerna före och efter ln(Y).</p></div>
+  <div class="card"><div class="label">Model selection</div><b>Genomföra tre sökmetoder.</b><p>All subsets samt forward och backward med AIC.</p></div>
+  <div class="card"><div class="label">Validation</div><b>Jämföra modeller på nya data.</b><p>MSE, MSPR och fullständiga summary-utskrifter.</p></div>
+</div>
+
+<nav class="nav" aria-label="Labbens steg">
+  <a href="#data">1 Data</a><a href="#raw">2 Modellform Y</a><a href="#log">3 ln(Y)</a><a href="#subsets">4 All subsets</a><a href="#stepwise">5 Forward/backward</a><a href="#validation">6 Validering</a><a href="#summary">7 Slutsats</a>
+</nav>
+
+<section class="lab" id="data">
+<div class="phase"><span>1</span> Data och studieupplägg</div>
+<h2>54 patienter bygger modellen och 54 nya patienter testar den</h2>
+<p class="purpose">En kirurgisk enhet vill prediktera överlevnadstid efter en viss leveroperation. Valideringsgruppen hålls utanför hela modellvalsprocessen.</p>
+<div class="metrics">
+  <div class="metric"><b>Träning</b><strong>54</strong>patienter</div>
+  <div class="metric"><b>Validering</b><strong>54</strong>nya patienter</div>
+  <div class="metric"><b>Variabelpool</b><strong>4</strong>prediktorer</div>
+  <div class="metric"><b>Respons</b><strong>Y → ln(Y)</strong>survival time</div>
+</div>
+<div class="table-wrap"><table>
+<thead><tr><th>Variabel</th><th>Innehåll</th><th>Roll</th></tr></thead>
+<tbody>
+<tr><td>X₁</td><td>Blood clotting score</td><td>Prediktor</td></tr>
+<tr><td>X₂</td><td>Prognostic index</td><td>Prediktor</td></tr>
+<tr><td>X₃</td><td>Enzyme function test score</td><td>Prediktor</td></tr>
+<tr><td>X₄</td><td>Liver function test score</td><td>Prediktor</td></tr>
+<tr><td>Y</td><td>Survival time</td><td>Respons</td></tr>
+</tbody></table></div>
+<div class="code">train_raw &lt;- read.csv("surgical_unit_training.csv")
+valid_raw &lt;- read.csv("surgical_unit_validation.csv")
+
+train &lt;- transform(train_raw,
+  x1=blood_clotting, x2=prognostic_index,
+  x3=enzyme_test, x4=liver_test,
+  y=survival_time, lny=ln_survival)
+
+str(train)</div>
+<div class="buttons"><button class="button reveal-btn" data-reveal="structure-out" type="button">Visa datastrukturen</button></div>
+<div id="structure-out" class="reveal"><div class="output">'data.frame': 54 obs. of  7 variables:
+ $ case             : int  1 2 3 4 5 ...
+ $ blood_clotting   : num  6.7 5.1 7.4 6.5 7.8 ...
+ $ prognostic_index : int  62 59 57 73 65 ...
+ $ enzyme_test      : int  81 66 83 41 115 ...
+ $ liver_test       : num  2.59 1.70 2.16 2.01 4.30 ...
+ $ survival_time    : int  695 403 710 349 2343 ...
+ $ ln_survival      : num  6.54 6.00 6.57 5.85 7.76 ...</div></div>
+<div class="kbox"><strong>Kutner-koppling:</strong> §9.2 och Table 9.1, s. 350–353.</div>
+</section>
+
+<section class="lab" id="raw">
+<div class="phase"><span>2</span> Undersök modellformen först</div>
+<div class="formula">Yᵢ = β₀ + β₁Xᵢ₁ + β₂Xᵢ₂ + β₃Xᵢ₃ + β₄Xᵢ₄ + εᵢ</div>
+<p class="purpose">Transformationen ska vara ett resultat av diagnostiken, inte ett automatiskt första steg. Därför skattas först den fulla modellen på den ursprungliga skalan.</p>
+<div class="code">model_y &lt;- lm(y ~ x1+x2+x3+x4, data=train)
+summary(model_y)</div>
+<div class="buttons"><button class="button reveal-btn" data-reveal="raw-summary" type="button">Visa summary för Y-modellen</button></div>
+<div id="raw-summary" class="reveal"><div class="output">Residuals:
+     Min       1Q   Median       3Q      Max
+-391.5527 -144.8080  -8.3352 129.5056 970.2579
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept) -1279.24162  243.80838  -5.247   0.000003 ***
+x1             82.98825   26.40215   3.143   0.002836 **
+x2              8.34587    2.11971   3.937   0.000260 ***
+x3             10.86961    1.92322   5.652   0.000001 ***
+x4             49.34624   47.12592   1.047   0.300185
+
+Residual standard error: 229.7221 on 49 degrees of freedom
+Multiple R-squared: 0.6910, Adjusted R-squared: 0.6658
+F-statistic: 27.399 on 4 and 49 DF, p-value: 5.70e-12</div></div>
+<h3>R-skript för diagnosgraferna med Y</h3>
+<div class="code">res_y &lt;- residuals(model_y)
+fit_y &lt;- fitted(model_y)
+
+par(mfrow=c(2,2))
+plot(fit_y, res_y, main="Residuals vs fitted — Y")
+abline(h=0, lty=2)
+qqnorm(res_y, main="Normal Q-Q plot — Y"); qqline(res_y)
+plot(train$x3, res_y, main="Residuals vs X3 — Y")
+abline(h=0, lty=2)
+plot(seq_along(res_y), res_y, main="Residuals by case — Y")
+abline(h=0, lty=2)
+par(mfrow=c(1,1))</div>
+<figure><img src="plots/raw-response-diagnostics.png" alt="Fyra diagnosgrafer för modellen med ursprunglig respons Y"><figcaption>På Y-skalan syns en stark positiv residual och ojämn spridning. Q-Q-diagrammets övre svans avviker tydligt. Antagandena om konstant varians och normalfördelade fel är tveksamma.</figcaption></figure>
+<div class="warning"><b>Diagnostiskt beslut:</b> Den ursprungliga responsen ger en olämplig modellform. Nu finns ett empiriskt motiv för att transformera Y.</div>
+<div class="kbox"><strong>Kutner-koppling:</strong> §9.2 och Figure 9.2a–b, s. 351–352.</div>
+</section>
+
+<section class="lab" id="log">
+<div class="phase"><span>3</span> Transformera och kontrollera igen</div>
+<h2>Transformera till ln(Y) och gör om diagnostiken</h2>
+<div class="code">train$lny &lt;- log(train$y)
+valid$lny &lt;- log(valid$y)
+
+model_log_full &lt;- lm(lny ~ x1+x2+x3+x4, data=train)
+summary(model_log_full)</div>
+<div class="buttons"><button class="button reveal-btn" data-reveal="log-summary" type="button">Visa summary för ln(Y)-modellen</button></div>
+<div id="log-summary" class="reveal"><div class="output">Residuals:
+     Min       1Q   Median       3Q      Max
+ -0.4350  -0.1759  -0.0209   0.1840   0.5619
+
+Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)    3.85195    0.26626  14.467   &lt;2e-16 ***
+x1             0.08368    0.02883   2.902   0.005536 **
+x2             0.01266    0.00231   5.471   0.000002 ***
+x3             0.01563    0.00210   7.443   &lt;0.000001 ***
+x4             0.03216    0.05147   0.625   0.534932
+
+Residual standard error: 0.2509 on 49 degrees of freedom
+Multiple R-squared: 0.7592, Adjusted R-squared: 0.7396
+F-statistic: 38.624 on 4 and 49 DF, p-value: 1.39e-14</div></div>
+<h3>R-skript för diagnosgraferna med ln(Y)</h3>
+<div class="code">res_log &lt;- residuals(model_log_full)
+fit_log &lt;- fitted(model_log_full)
+
+par(mfrow=c(2,2))
+plot(fit_log, res_log, main="Residuals vs fitted — ln(Y)")
+abline(h=0, lty=2)
+qqnorm(res_log, main="Normal Q-Q plot — ln(Y)"); qqline(res_log)
+plot(train$x3, res_log, main="Residuals vs X3 — ln(Y)")
+abline(h=0, lty=2)
+plot(seq_along(res_log), res_log, main="Residuals by case — ln(Y)")
+abline(h=0, lty=2)
+par(mfrow=c(1,1))</div>
+<figure><img src="plots/log-response-diagnostics.png" alt="Fyra diagnosgrafer för modellen med transformerad respons ln Y"><figcaption>Efter logaritmering ligger residualerna jämnare runt noll och Q-Q-diagrammet är betydligt rakare. ln(Y)-modellen används därför i resten av labben.</figcaption></figure>
+<h3>Full korrelationsmatris efter transformationen</h3>
+<div class="code">round(cor(train[, c("lny","x1","x2","x3","x4")]), 4)</div>
+<div class="buttons"><button class="button reveal-btn" data-reveal="cor-out" type="button">Visa korrelationsmatrisen</button></div>
+<div id="cor-out" class="reveal"><div class="output">        lny      x1      x2      x3      x4
+lny  1.0000  0.2462  0.4699  0.6539  0.6493
+x1   0.2462  1.0000  0.0901 -0.1496  0.5024
+x2   0.4699  0.0901  1.0000 -0.0236  0.3690
+x3   0.6539 -0.1496 -0.0236  1.0000  0.4164
+x4   0.6493  0.5024  0.3690  0.4164  1.0000</div>
+<div class="interpret"><div class="label">Tolkning</div><p>X₃ och X₄ har starkast marginal korrelation med ln(Y), men X₄ korrelerar också med X₁–X₃. Dess unika bidrag kan därför bli litet i multipel regression.</p></div></div>
+<div class="kbox"><strong>Kutner-koppling:</strong> §9.2, Figure 9.2c–d och Figure 9.3, s. 352–353.</div>
+</section>
+
+<section class="lab" id="subsets">
+<div class="phase"><span>4</span> All possible subsets</div>
+<h2>Fyra prediktorer ger 16 möjliga modeller</h2>
+<div class="formula">Antal subsetmodeller = 2⁴ = 16</div>
+<p class="purpose">Alla kombinationer av X₁–X₄ undersöks med <code>ols_step_all_possible()</code> i paketet <code>olsrr</code>. Funktionen redovisar bland annat R², justerat R², Mallows Cₚ, AIC och SBC.</p>
+<details><summary>Visa komplett subset-skript</summary>
+<div class="code"># Kör endast första gången om paketet saknas:
+# install.packages("olsrr")
+library(olsrr)
+
+# Steg 1: skatta den fulla modellen en gång.
+model_full_subsets &lt;- lm(
+  lny ~ x1+x2+x3+x4,
+  data=train)
+
+# Steg 2: undersök alla möjliga subsets.
+subsets4 &lt;- ols_step_all_possible(model_full_subsets)
+subsets4
+
+# Steg 3: visa paketets modellvalsdiagram.
+plot(subsets4)
+
+# Steg 4: bästa modell inom varje modellstorlek.
+ordered_subsets4 &lt;- subsets4[
+  order(subsets4$n,-subsets4$adjr),]
+best_subsets4 &lt;- ordered_subsets4[
+  !duplicated(ordered_subsets4$n),]
+best_subsets4</div></details>
+<div class="note"><b>Observera:</b> <code>ols_step_all_possible()</code> skriver ut de 15 modeller som innehåller minst en prediktor. Tillsammans med interceptmodellen blir det teoretiska antalet 2⁴ = 16 modeller.</div>
+<div class="buttons"><a class="button alt" href="R_output_16_subset_models.txt" download>Ladda ner R-output: alla 16 modeller</a><a class="button alt" href="R_output_best_models_X1_X4.txt" download>R-output: bästa per storlek</a></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Antal X</th><th>Bästa variabler</th><th>p</th><th>Adj. R²</th><th>Cₚ</th><th>AIC</th><th>SBC</th><th>PRESS</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>Intercept</td><td>1</td><td>0,0000</td><td>151,4975</td><td>−75,7025</td><td>−73,7135</td><td>13,2956</td></tr>
+<tr><td>1</td><td>X₃</td><td>2</td><td>0,4166</td><td>66,4889</td><td>−103,8269</td><td>−99,8489</td><td>8,3267</td></tr>
+<tr><td>2</td><td>X₂, X₃</td><td>3</td><td>0,6501</td><td>20,5197</td><td>−130,4833</td><td>−124,5163</td><td>5,0653</td></tr>
+<tr class="selected"><td>3</td><td>X₁, X₂, X₃</td><td>4</td><td>0,7427</td><td>3,3905</td><td>−146,1609</td><td>−138,2049</td><td>3,9142</td></tr>
+<tr><td>4</td><td>X₁, X₂, X₃, X₄</td><td>5</td><td>0,7396</td><td>5,0000</td><td>−144,5895</td><td>−134,6446</td><td>4,0686</td></tr>
+</tbody></table></div>
+<div class="interpret"><div class="label">Resultat</div><p>Alla fem kriterier föredrar X₁+X₂+X₃. När X₄ läggs till minskar SSE obetydligt, medan justerat R², AIC, SBC och PRESS försämras.</p></div>
+<div class="kbox"><strong>Kutner-koppling:</strong> §9.3; justerat R² (9.4), Cₚ (9.9), AIC/SBC (9.14–9.15) och PRESS (9.17).</div>
+</section>
+
+<section class="lab" id="stepwise">
+<div class="phase"><span>5</span> Automatisk sökning</div>
+<h2>Genomför både forward och backward selection</h2>
+<div class="grid2">
+  <div class="card model"><strong>Forward</strong><code>1 → X₃ → X₃+X₂ → X₃+X₂+X₁</code><p>Startar med interceptmodellen och lägger till den variabel som sänker AIC mest.</p></div>
+  <div class="card model"><strong>Backward</strong><code>X₁+X₂+X₃+X₄ → X₁+X₂+X₃</code><p>Startar med full modell och tar bort den variabel som förbättrar AIC mest.</p></div>
+</div>
+<div class="code">null_model &lt;- lm(lny ~ 1, data=train)
+full_model &lt;- lm(lny ~ x1+x2+x3+x4, data=train)
+
+forward_model &lt;- step(
+  null_model,
+  scope=list(lower=formula(null_model), upper=formula(full_model)),
+  direction="forward", trace=TRUE)
+
+backward_model &lt;- step(
+  full_model,
+  direction="backward", trace=TRUE)
+
+formula(forward_model)
+formula(backward_model)</div>
+<div class="buttons"><button class="button reveal-btn" data-reveal="step-out" type="button">Visa sökvägar och AIC</button><a class="button alt" href="R_output_forward_backward.txt" download>Ladda ner R-output</a></div>
+<div id="step-out" class="reveal"><div class="output">Forward
+Steg  Modell          AIC
+0     1             -75.7025
+1     x3           -103.8269
+2     x3+x2        -130.4833
+3     x3+x2+x1     -146.1609
+
+Backward
+Steg  Modell          AIC
+0     x1+x2+x3+x4  -144.5895
+1     x1+x2+x3     -146.1609</div>
+<div class="interpret"><div class="label">Gemensamt slutresultat</div><p>Båda riktningarna slutar i samma modell: ln(Y) ~ X₁+X₂+X₃. Det överensstämmer med resultatet från all subsets.</p></div></div>
+<div class="warning"><b>Begränsning:</b> Forward och backward undersöker bara en sökväg genom modellrummet. Överensstämmelse med all subsets stärker slutsatsen här, men automatisk selection ersätter inte diagnostik eller validering.</div>
+<div class="kbox"><strong>Kutner-koppling:</strong> §9.4 om automatic search procedures; begränsningar diskuteras i §9.5.</div>
+</section>
+
+<section class="lab" id="validation">
+<div class="phase"><span>6</span> Validera två slutkandidater</div>
+<h2>Jämför både prediktionsfel och fullständiga summary-utskrifter</h2>
+<div class="grid2">
+  <div class="card model"><strong>Modell A · vald</strong><code>ln(Y) ~ X₁+X₂+X₃</code><p>Vald av all subsets, forward och backward.</p></div>
+  <div class="card model"><strong>Modell B · full jämförelsemodell</strong><code>ln(Y) ~ X₁+X₂+X₃+X₄</code><p>Kontrollerar om X₄ ger något stabilt mervärde.</p></div>
+</div>
+<div class="formula">MSPR = (1/n*) Σ[ln(Yᵢ) − ln(Ŷᵢ)]² &nbsp;&nbsp; (9.20)</div>
+<p class="purpose">Koefficienterna från träningsdata används för att prediktera de 54 nya patienterna. MSPR beräknas direkt, utan en egen function.</p>
+<div class="code">model_a_train &lt;- lm(lny ~ x1+x2+x3, data=train)
+model_b_train &lt;- lm(lny ~ x1+x2+x3+x4, data=train)
+
+pred_a &lt;- predict(model_a_train, newdata=valid)
+pred_b &lt;- predict(model_b_train, newdata=valid)
+
+mspr_a &lt;- mean((valid$lny-pred_a)^2)
+mspr_b &lt;- mean((valid$lny-pred_b)^2)
+
+validation_result &lt;- data.frame(
+  model=c("Modell A","Modell B"),
+  MSE_training=c(summary(model_a_train)$sigma^2,
+                 summary(model_b_train)$sigma^2),
+  MSPR_validation=c(mspr_a,mspr_b))
+validation_result</div>
+<div class="buttons"><button class="button reveal-btn" data-reveal="validation-out" type="button">Visa MSE och MSPR</button><a class="button alt" href="R_output_validation_two_models.txt" download>Ladda ner R-output</a></div>
+<div id="validation-out" class="reveal"><div class="output">                      model MSE_training MSPR_validation
+1       Modell A: X1+X2+X3       0.0622          0.0813
+2    Modell B: X1+X2+X3+X4       0.0629          0.0800</div></div>
+<h3>R-skript för MSPR-grafen</h3>
+<div class="code">plot_values &lt;- rbind(validation_result$MSE_training,
+                     validation_result$MSPR_validation)
+barplot(plot_values, beside=TRUE,
+        names.arg=c("Modell A","Modell B"),
+        col=c("#13b8a6","#092235"),
+        ylab="Mean squared error", ylim=c(0,0.10))
+legend("topright", legend=c("MSE, training","MSPR, validation"),
+       fill=c("#13b8a6","#092235"), bty="n")</div>
+<figure><img src="plots/validation-mse-mspr.png" alt="Stapeldiagram över MSE och MSPR för Modell A och Modell B"><figcaption>Modell B får marginellt lägre MSPR, men skillnaden är cirka 0,0012. Den praktiska prediktionsvinsten av X₄ är mycket liten.</figcaption></figure>
+
+<h3 class="compare-title">Jämför summary(): Modell A</h3>
+<div class="code">model_a_valid &lt;- lm(lny ~ x1+x2+x3, data=valid)
+summary(model_a_train)
+summary(model_a_valid)</div>
+<div class="buttons"><button class="button reveal-btn" data-reveal="summary-a" type="button">Visa training och validation för Modell A</button></div>
+<div id="summary-a" class="reveal grid2">
+<div><div class="label">Training · Modell A</div><div class="output">Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)    3.76618    0.22676  16.609   &lt;2e-16 ***
+x1             0.09546    0.02169   4.401   0.000057 ***
+x2             0.01334    0.00203   6.556   &lt;0.000001 ***
+x3             0.01645    0.00163  10.094   &lt;0.000001 ***
+
+Residual standard error: 0.2493 on 50 DF
+Multiple R-squared: 0.7573
+Adjusted R-squared: 0.7427</div></div>
+<div><div class="label">Validation · Modell A</div><div class="output">Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)    3.70205    0.29497  12.550   &lt;2e-16 ***
+x1             0.09830    0.03277   3.000   0.004203 **
+x2             0.01655    0.00238   6.951   &lt;0.000001 ***
+x3             0.01480    0.00203   7.284   &lt;0.000001 ***
+
+Residual standard error: 0.2858 on 50 DF
+Multiple R-squared: 0.6841
+Adjusted R-squared: 0.6651</div></div>
+</div>
+<div class="interpret"><div class="label">Modell A är stabil</div><p>Alla tre koefficienter behåller tecken och ungefär samma storlek. X₁–X₃ är signifikanta även när modellen skattas separat på valideringsdata. R² är lägre på nya data, vilket är normalt.</p></div>
+
+<h3 class="compare-title">Jämför summary(): Modell B</h3>
+<div class="code">model_b_valid &lt;- lm(lny ~ x1+x2+x3+x4, data=valid)
+summary(model_b_train)
+summary(model_b_valid)</div>
+<div class="buttons"><button class="button reveal-btn" data-reveal="summary-b" type="button">Visa training och validation för Modell B</button><a class="button alt" href="R_output_train_validation_summaries.txt" download>Ladda ner alla fyra summary-utskrifter</a></div>
+<div id="summary-b" class="reveal grid2">
+<div><div class="label">Training · Modell B</div><div class="output">Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)    3.85195    0.26626  14.467   &lt;2e-16 ***
+x1             0.08368    0.02883   2.902   0.005536 **
+x2             0.01266    0.00231   5.471   0.000002 ***
+x3             0.01563    0.00210   7.443   &lt;0.000001 ***
+x4             0.03216    0.05147   0.625   0.534932
+
+Residual standard error: 0.2509 on 49 DF
+Multiple R-squared: 0.7592
+Adjusted R-squared: 0.7396</div></div>
+<div><div class="label">Validation · Modell B</div><div class="output">Coefficients:
+             Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)    3.80141    0.31470  12.079   &lt;0.000001 ***
+x1             0.08556    0.03564   2.401   0.020202 *
+x2             0.01545    0.00267   5.782   0.000001 ***
+x3             0.01339    0.00255   5.251   0.000003 ***
+x4             0.05422    0.05915   0.917   0.363765
+
+Residual standard error: 0.2862 on 49 DF
+Multiple R-squared: 0.6894
+Adjusted R-squared: 0.6641</div></div>
+</div>
+<div class="interpret"><div class="label">Modell B ger inget tydligt mervärde</div><p>X₄ är positiv men inte signifikant i vare sig training (p≈0,535) eller validation (p≈0,364). Justerat R² är dessutom något lägre än för Modell A i båda grupperna.</p></div>
+<div class="ok"><b>Val efter validering:</b> Modell A, ln(Y) ~ X₁+X₂+X₃. Den är enklare, koefficienterna är stabila och Modell B:s marginellt lägre MSPR uppväger inte den extra parametern.</div>
+<div class="kbox"><strong>Kutner-koppling:</strong> §9.6 och MSPR-ekvation (9.20).</div>
+</section>
+
+<section class="lab" id="summary">
+<div class="phase"><span>7</span> Sammanfattning</div>
+<h2>Analysordningen är en del av slutsatsen</h2>
+<div class="flow">
+  <div><div class="label">1 · Modellform</div><b>Skatta först på Y-skalan.</b><small>Diagnosgraferna visar varför modellen behöver förändras.</small></div>
+  <div><div class="label">2 · Transformation</div><b>Gå till ln(Y) och diagnostisera igen.</b><small>Transformationen stabiliserar variansen och förbättrar normaliteten.</small></div>
+  <div><div class="label">3 · Modellval</div><b>Jämför flera sökmetoder.</b><small>All subsets, forward och backward väljer X₁+X₂+X₃.</small></div>
+  <div><div class="label">4 · Validering</div><b>Kontrollera prediktion och stabilitet.</b><small>MSE/MSPR och summary() ger en samlad bedömning.</small></div>
+</div>
+<details><summary>Kontrollfrågor för studenter</summary>
+<ol>
+  <li>Vilka mönster i diagnosgraferna motiverar ln(Y)?</li>
+  <li>Varför minskar inte justerat R² automatiskt när en relevant variabel läggs till?</li>
+  <li>Varför kan forward och backward i allmänhet ge olika slutmodeller?</li>
+  <li>Vad mäter MSPR som MSE i träningsdata inte mäter?</li>
+  <li>Varför väljs Modell A trots att Modell B har marginellt lägre MSPR?</li>
+</ol></details>
+<div class="actions"><a class="button" href="labb4_chapter9.R" download>Hämta hela R-scriptet</a><a class="button alt" href="#data">Tillbaka till data</a></div>
+</section>
+</main>
+<footer><strong>STGB33 · Linjära metoder i R</strong><br>Källa: Kutner, Nachtsheim, Neter och Li, <em>Applied Linear Statistical Models</em>, 5:e upplagan, kapitel 9.</footer>
+<script>
+const buttons=[...document.querySelectorAll('.reveal-btn')];
+buttons.forEach(button=>{
+  button.setAttribute('aria-expanded','false');
+  button.dataset.original=button.textContent;
+  button.addEventListener('click',()=>{
+    const target=document.getElementById(button.dataset.reveal);
+    const open=target.classList.toggle('open');
+    button.setAttribute('aria-expanded',String(open));
+    button.textContent=open?'Dölj output':button.dataset.original;
+  });
+});
+const teacher=document.getElementById('teacher');
+teacher.addEventListener('click',()=>{
+  const reveals=[...document.querySelectorAll('.reveal')];
+  const shouldOpen=reveals.some(x=>!x.classList.contains('open'));
+  reveals.forEach(x=>x.classList.toggle('open',shouldOpen));
+  buttons.forEach(b=>{b.setAttribute('aria-expanded',String(shouldOpen));b.textContent=shouldOpen?'Dölj output':b.dataset.original;});
+  teacher.textContent=shouldOpen?'Lärarläge: dölj all output':'Lärarläge: visa all output';
+});
+</script>
+</body>
+</html>

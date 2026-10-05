@@ -1,0 +1,4 @@
+> validation_result
+                model   variables MSE_training MSPR_validation
+   Modell A: X1+X2+X3    X1+X2+X3       0.0622          0.0813
+Modell B: X1+X2+X3+X4 X1+X2+X3+X4       0.0629          0.0800
