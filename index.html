@@ -71,6 +71,7 @@ str(train)</div>
  $ liver_test       : num  2.59 1.70 2.16 2.01 4.30 ...
  $ survival_time    : int  695 403 710 349 2343 ...
  $ ln_survival      : num  6.54 6.00 6.57 5.85 7.76 ...</div></div>
+<div class="interpret"><div class="label">Så läser du outputen</div><p><code>54 obs.</code> betyder att träningsmaterialet innehåller 54 patienter. De fyra kolumnerna <code>x1</code>–<code>x4</code> utgör variabelpoolen, medan <code>y</code> och <code>lny</code> är samma respons på två olika skalor. Modellvalet görs endast med träningsdata; de andra 54 patienterna sparas till en oberoende kontroll.</p></div>
 <div class="kbox"><strong>Kutner-koppling:</strong> §9.2 och Table 9.1, s. 350–353.</div>
 </section>
 
@@ -96,6 +97,9 @@ x4             49.34624   47.12592   1.047   0.300185
 Residual standard error: 229.7221 on 49 degrees of freedom
 Multiple R-squared: 0.6910, Adjusted R-squared: 0.6658
 F-statistic: 27.399 on 4 and 49 DF, p-value: 5.70e-12</div></div>
+<div class="interpret"><div class="label">Tolkning av R-output: Y-modellen</div>
+<p>Det övergripande F-testet är signifikant (<em>p</em> = 5,70·10<sup>−12</sup>), så minst en prediktor är relaterad till Y. Modellen förklarar 69,1 % av variationen i överlevnadstid, och justerat R² är 66,6 % efter hänsyn till fyra prediktorer.</p>
+<p>X₁, X₂ och X₃ har positiva och statistiskt signifikanta koefficienter. X₄ är däremot inte signifikant när de andra variablerna hålls konstanta (<em>p</em> = 0,300). Detta räcker ändå inte för att godkänna modellen: residual standard error är cirka 230 tidsenheter och residualerna måste granskas innan testerna och standardfelen kan anses tillförlitliga.</p></div>
 <h3>R-skript för diagnosgraferna med Y</h3>
 <div class="code">res_y &lt;- residuals(model_y)
 fit_y &lt;- fitted(model_y)
@@ -110,6 +114,14 @@ plot(seq_along(res_y), res_y, main="Residuals by case — Y")
 abline(h=0, lty=2)
 par(mfrow=c(1,1))</div>
 <figure><img src="plots/raw-response-diagnostics.png" alt="Fyra diagnosgrafer för modellen med ursprunglig respons Y"><figcaption>På Y-skalan syns en stark positiv residual och ojämn spridning. Q-Q-diagrammets övre svans avviker tydligt. Antagandena om konstant varians och normalfördelade fel är tveksamma.</figcaption></figure>
+<div class="interpret"><div class="label">Tolkning av de fyra diagnosgraferna</div>
+<ul>
+<li><strong>Residuals vs fitted:</strong> spridningen ökar vid större fitted values och en observation ligger nära +1 000. Ett sådant funnel-mönster talar mot konstant felvarians.</li>
+<li><strong>Normal Q-Q:</strong> punkterna följer linjen i mitten men den övre svansen böjer kraftigt uppåt. Det visar högerskevhet och en ovanligt stor positiv residual.</li>
+<li><strong>Residuals vs X₃:</strong> residualerna ligger inte som ett jämnt slumpmoln runt noll. Vid större X₃ förekommer både större spridning och den extrema positiva residualen.</li>
+<li><strong>Residuals by case:</strong> ingen tydlig tidsordning syns, men ett fåtal fall avviker markant. Dessa fall kan få stor påverkan på skattning och standardfel.</li>
+</ul>
+<p><strong>Samlad bedömning:</strong> det är framför allt ojämn varians och bristande normalitet som gör Y-skalan olämplig. Därför prövas ln(Y), i linje med diagnostiken i Kutners Figure 9.2.</p></div>
 <div class="warning"><b>Diagnostiskt beslut:</b> Den ursprungliga responsen ger en olämplig modellform. Nu finns ett empiriskt motiv för att transformera Y.</div>
 <div class="kbox"><strong>Kutner-koppling:</strong> §9.2 och Figure 9.2a–b, s. 351–352.</div>
 </section>
@@ -138,6 +150,9 @@ x4             0.03216    0.05147   0.625   0.534932
 Residual standard error: 0.2509 on 49 degrees of freedom
 Multiple R-squared: 0.7592, Adjusted R-squared: 0.7396
 F-statistic: 38.624 on 4 and 49 DF, p-value: 1.39e-14</div></div>
+<div class="interpret"><div class="label">Tolkning av R-output: ln(Y)-modellen</div>
+<p>Efter transformationen ökar R² från 0,691 till 0,759 och residual standard error blir 0,251 på log-skalan. Det övergripande F-testet är starkt signifikant, vilket visar att modellen som helhet innehåller prediktionsinformation.</p>
+<p>När övriga variabler hålls konstanta motsvarar koefficienterna ungefär en förändring i Y på 8,7 % per enhet X₁, 1,3 % per enhet X₂ och 1,6 % per enhet X₃. X₄ har fortfarande ett litet unikt bidrag: <em>p</em> = 0,535. Procenttolkningarna är <code>100·(exp(b)−1)</code> och gäller exakt för en enhets ökning på den log-linjära skalan.</p></div>
 <h3>R-skript för diagnosgraferna med ln(Y)</h3>
 <div class="code">res_log &lt;- residuals(model_log_full)
 fit_log &lt;- fitted(model_log_full)
@@ -152,6 +167,14 @@ plot(seq_along(res_log), res_log, main="Residuals by case — ln(Y)")
 abline(h=0, lty=2)
 par(mfrow=c(1,1))</div>
 <figure><img src="plots/log-response-diagnostics.png" alt="Fyra diagnosgrafer för modellen med transformerad respons ln Y"><figcaption>Efter logaritmering ligger residualerna jämnare runt noll och Q-Q-diagrammet är betydligt rakare. ln(Y)-modellen används därför i resten av labben.</figcaption></figure>
+<div class="interpret"><div class="label">Tolkning efter transformationen</div>
+<ul>
+<li><strong>Residuals vs fitted:</strong> residualernas vertikala spridning är nu betydligt jämnare över hela intervallet. Det tidigare funnel-mönstret har minskat tydligt.</li>
+<li><strong>Normal Q-Q:</strong> de flesta punkter ligger nära referenslinjen. Små avvikelser finns i svansarna, men den kraftiga högerskevheten på Y-skalan är borta.</li>
+<li><strong>Residuals vs X₃:</strong> inget tydligt systematiskt samband återstår. Det stödjer en linjär representation av X₃ i modellen.</li>
+<li><strong>Residuals by case:</strong> positiva och negativa residualer blandas utan en tydlig följd. Några relativt stora residualer finns kvar och bör observeras, men de dominerar inte längre skalan.</li>
+</ul>
+<p><strong>Samlad bedömning:</strong> ln(Y) ger en mer rimlig felstruktur. Transformationen garanterar inte perfekta antaganden, men diagnostiken är tillräckligt förbättrad för att gå vidare med modellval.</p></div>
 <h3>Full korrelationsmatris efter transformationen</h3>
 <div class="code">round(cor(train[, c("lny","x1","x2","x3","x4")]), 4)</div>
 <div class="buttons"><button class="button reveal-btn" data-reveal="cor-out" type="button">Visa korrelationsmatrisen</button></div>
@@ -161,7 +184,7 @@ x1   0.2462  1.0000  0.0901 -0.1496  0.5024
 x2   0.4699  0.0901  1.0000 -0.0236  0.3690
 x3   0.6539 -0.1496 -0.0236  1.0000  0.4164
 x4   0.6493  0.5024  0.3690  0.4164  1.0000</div>
-<div class="interpret"><div class="label">Tolkning</div><p>X₃ och X₄ har starkast marginal korrelation med ln(Y), men X₄ korrelerar också med X₁–X₃. Dess unika bidrag kan därför bli litet i multipel regression.</p></div></div>
+<div class="interpret"><div class="label">Tolkning</div><p>X₃ och X₄ har starkast <em>marginal</em> korrelation med ln(Y): 0,654 respektive 0,649. Det betyder att de var för sig har tydliga positiva samband med responsen. X₁ har den svagaste marginala korrelationen, 0,246, men kan ändå bidra när övriga variabler hålls konstanta.</p><p>X₄ korrelerar samtidigt med X₁ (0,502), X₂ (0,369) och X₃ (0,416). X₄ överlappar därför information som redan finns i de andra prediktorerna. Det förklarar varför X₄ kan ha hög korrelation med ln(Y) men ändå bli icke-signifikant i den multipla modellen. Korrelationsmatrisen ensam avgör alltså inte vilka variabler som ska ingå.</p></div></div>
 <div class="kbox"><strong>Kutner-koppling:</strong> §9.2, Figure 9.2c–d och Figure 9.3, s. 352–353.</div>
 </section>
 
@@ -204,7 +227,10 @@ best_subsets4</div></details>
 <tr class="selected"><td>3</td><td>X₁, X₂, X₃</td><td>4</td><td>0,7427</td><td>3,3905</td><td>−146,1609</td><td>−138,2049</td><td>3,9142</td></tr>
 <tr><td>4</td><td>X₁, X₂, X₃, X₄</td><td>5</td><td>0,7396</td><td>5,0000</td><td>−144,5895</td><td>−134,6446</td><td>4,0686</td></tr>
 </tbody></table></div>
-<div class="interpret"><div class="label">Resultat</div><p>Alla fem kriterier föredrar X₁+X₂+X₃. När X₄ läggs till minskar SSE obetydligt, medan justerat R², AIC, SBC och PRESS försämras.</p></div>
+<div class="interpret"><div class="label">Tolkning av modellvalskriterierna</div>
+<p>Den största förbättringen sker först när X₂ läggs till X₃: justerat R² stiger från 0,417 till 0,650 och PRESS minskar från 8,327 till 5,065. När X₁ därefter läggs till stiger justerat R² vidare till 0,743 och PRESS sjunker till 3,914. X₁ ger alltså ett tydligt bidrag trots sin svaga marginala korrelation med ln(Y).</p>
+<p>Modellen X₁+X₂+X₃ har högst justerat R², lägst Cₚ, lägst AIC och SBC samt lägst PRESS bland de redovisade kandidaterna. För AIC och SBC betyder ett mer negativt värde ett mindre värde och därmed bättre balans mellan anpassning och modellstorlek.</p>
+<p>När X₄ läggs till stiger vanligt R² endast från cirka 0,757 till 0,759, medan justerat R² sjunker till 0,740 och PRESS ökar till 4,069. Den lilla förbättringen i anpassning räcker alltså inte för att kompensera för en extra parameter. Detta är den straffeffekt som finns i justerat R², AIC och SBC.</p></div>
 <div class="kbox"><strong>Kutner-koppling:</strong> §9.3; justerat R² (9.4), Cₚ (9.9), AIC/SBC (9.14–9.15) och PRESS (9.17).</div>
 </section>
 
@@ -241,7 +267,7 @@ Backward
 Steg  Modell          AIC
 0     x1+x2+x3+x4  -144.5895
 1     x1+x2+x3     -146.1609</div>
-<div class="interpret"><div class="label">Gemensamt slutresultat</div><p>Båda riktningarna slutar i samma modell: ln(Y) ~ X₁+X₂+X₃. Det överensstämmer med resultatet från all subsets.</p></div></div>
+<div class="interpret"><div class="label">Tolkning av sökvägarna</div><p>Forward väljer först X₃ eftersom det ger den största första AIC-förbättringen. AIC minskar sedan tydligt när X₂ och X₁ läggs till: −75,70 → −103,83 → −130,48 → −146,16. Ingen ytterligare sänkning erhålls av X₄, så sökningen stannar.</p><p>Backward börjar med alla fyra prediktorer. När X₄ tas bort minskar AIC från −144,59 till −146,16, vilket betyder att den enklare modellen är bättre enligt AIC. Att båda riktningarna och all subsets landar i X₁+X₂+X₃ ger ett konsekvent modellvalsresultat.</p></div></div>
 <div class="warning"><b>Begränsning:</b> Forward och backward undersöker bara en sökväg genom modellrummet. Överensstämmelse med all subsets stärker slutsatsen här, men automatisk selection ersätter inte diagnostik eller validering.</div>
 <div class="kbox"><strong>Kutner-koppling:</strong> §9.4 om automatic search procedures; begränsningar diskuteras i §9.5.</div>
 </section>
@@ -274,6 +300,7 @@ validation_result</div>
 <div id="validation-out" class="reveal"><div class="output">                      model MSE_training MSPR_validation
 1       Modell A: X1+X2+X3       0.0622          0.0813
 2    Modell B: X1+X2+X3+X4       0.0629          0.0800</div></div>
+<div class="interpret"><div class="label">Tolkning av MSE och MSPR</div><p>För Modell A ökar det genomsnittliga kvadrerade felet från MSE = 0,0622 i träningsdata till MSPR = 0,0813 i valideringsdata. För Modell B är motsvarande värden 0,0629 och 0,0800. Att MSPR är högre än MSE är väntat eftersom valideringspatienterna inte användes när koefficienterna skattades.</p><p>Ökningen är cirka 31 % för Modell A och 27 % för Modell B, men modellerna har nästan samma externa prediktionsfel. Skillnaden i MSPR är bara 0,0013 på log-skalan, ungefär 1,6 % av Modell A:s MSPR. Resultatet visar därför inte någon meningsfull prediktionsvinst av X₄.</p></div>
 <h3>R-skript för MSPR-grafen</h3>
 <div class="code">plot_values &lt;- rbind(validation_result$MSE_training,
                      validation_result$MSPR_validation)
@@ -283,7 +310,8 @@ barplot(plot_values, beside=TRUE,
         ylab="Mean squared error", ylim=c(0,0.10))
 legend("topright", legend=c("MSE, training","MSPR, validation"),
        fill=c("#13b8a6","#092235"), bty="n")</div>
-<figure><img src="plots/validation-mse-mspr.png" alt="Stapeldiagram över MSE och MSPR för Modell A och Modell B"><figcaption>Modell B får marginellt lägre MSPR, men skillnaden är cirka 0,0012. Den praktiska prediktionsvinsten av X₄ är mycket liten.</figcaption></figure>
+<figure><img src="plots/validation-mse-mspr.png" alt="Stapeldiagram över MSE och MSPR för Modell A och Modell B"><figcaption>De mörka staplarna är högre än de turkosa för båda modellerna: felet ökar på nya patienter. Skillnaden mellan modellernas mörka staplar är däremot mycket liten.</figcaption></figure>
+<div class="interpret"><div class="label">Tolkning av MSPR-grafen</div><p>Grafen ska läsas inom varje modell och sedan mellan modellerna. Inom båda modellerna ligger MSPR över MSE, vilket visar att träningsfelet är något optimistiskt. Mellan modellerna är staplarna nästan lika höga. X₄ förbättrar alltså inte den externa prediktionen tillräckligt för att motivera en större modell.</p></div>
 
 <h3 class="compare-title">Jämför summary(): Modell A</h3>
 <div class="code">model_a_valid &lt;- lm(lny ~ x1+x2+x3, data=valid)
@@ -312,7 +340,7 @@ Residual standard error: 0.2858 on 50 DF
 Multiple R-squared: 0.6841
 Adjusted R-squared: 0.6651</div></div>
 </div>
-<div class="interpret"><div class="label">Modell A är stabil</div><p>Alla tre koefficienter behåller tecken och ungefär samma storlek. X₁–X₃ är signifikanta även när modellen skattas separat på valideringsdata. R² är lägre på nya data, vilket är normalt.</p></div>
+<div class="interpret"><div class="label">Modell A är stabil</div><p>Alla tre koefficienter är positiva i båda dataseten. X₁ ändras endast från 0,0955 till 0,0983 och X₃ från 0,0165 till 0,0148. X₂ ökar från 0,0133 till 0,0166, men riktning och storleksordning är desamma. Alla tre prediktorer är fortfarande signifikanta i valideringsdata.</p><p>R² sjunker från 0,757 till 0,684 och residual standard error ökar från 0,249 till 0,286. En viss försämring på nya data är väntad. Det viktiga här är att förklaringsgraden fortfarande är tydlig och att koefficienternas tecken och storlekar är stabila. Detta ger stöd för att Modell A kan generaliseras till nya patienter.</p></div>
 
 <h3 class="compare-title">Jämför summary(): Modell B</h3>
 <div class="code">model_b_valid &lt;- lm(lny ~ x1+x2+x3+x4, data=valid)
@@ -343,7 +371,7 @@ Residual standard error: 0.2862 on 49 DF
 Multiple R-squared: 0.6894
 Adjusted R-squared: 0.6641</div></div>
 </div>
-<div class="interpret"><div class="label">Modell B ger inget tydligt mervärde</div><p>X₄ är positiv men inte signifikant i vare sig training (p≈0,535) eller validation (p≈0,364). Justerat R² är dessutom något lägre än för Modell A i båda grupperna.</p></div>
+<div class="interpret"><div class="label">Modell B ger inget tydligt mervärde</div><p>X₄ är positiv i båda dataseten, men skattningen är osäker: 0,032 med standardfel 0,051 i träningsdata och 0,054 med standardfel 0,059 i valideringsdata. P-värdena 0,535 och 0,364 ger inget stöd för ett självständigt bidrag från X₄ när X₁–X₃ redan ingår.</p><p>Modell B får något högre vanligt R² än Modell A, eftersom R² aldrig minskar när en variabel läggs till. Justerat R² är däremot lägre för Modell B i både training (0,740 mot 0,743) och validation (0,664 mot 0,665). Tillsammans med nästan identisk MSPR visar detta att X₄ ökar komplexiteten utan en tydlig praktisk förbättring.</p></div>
 <div class="ok"><b>Val efter validering:</b> Modell A, ln(Y) ~ X₁+X₂+X₃. Den är enklare, koefficienterna är stabila och Modell B:s marginellt lägre MSPR uppväger inte den extra parametern.</div>
 <div class="kbox"><strong>Kutner-koppling:</strong> §9.6 och MSPR-ekvation (9.20).</div>
 </section>
